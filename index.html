@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>My Own Score Record</title>
+<title>My Own Score Record </title>
 <style>
 body { font-size: 18px; }
 table { width: 90%; border-collapse: collapse; font-size: 16px; }
@@ -36,12 +36,10 @@ img { max-width: 100px; max-height: 100px; } /* Limit image size */
 <button onclick="addRow()">Add Row</button>
 
 <script>
-  const pageID = window.location.pathname; // Unique key per GitHub Page
-  const storageKey = `tableData_${pageID}`;
-  let data = JSON.parse(localStorage.getItem(storageKey)) || [];
+  let data = JSON.parse(localStorage.getItem('tableData')) || [];
 
   function updateLocalStorage() {
-    localStorage.setItem(storageKey, JSON.stringify(data));
+    localStorage.setItem('tableData', JSON.stringify(data));
   }
 
   function updateData(rowIndex, colIndex, value) {
@@ -59,37 +57,23 @@ img { max-width: 100px; max-height: 100px; } /* Limit image size */
   function addRow() {
     const file = document.getElementById('imagePicker').files[0];
     let imageUrl = '';
-
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        imageUrl = e.target.result;
-        const newRow = [
-          document.getElementById('newCol1').value,
-          document.getElementById('newCol2').value,
-          imageUrl,
-        ];
-        data.push(newRow);
-        document.getElementById('newCol1').value = '';
-        document.getElementById('newCol2').value = '';
-        document.getElementById('imagePicker').value = ''; // Clear file input
-        updateLocalStorage();
-        renderTable();
-      };
+      reader.onload = (e) => { imageUrl = e.target.result; };
       reader.readAsDataURL(file);
-    } else {
-      const newRow = [
-        document.getElementById('newCol1').value,
-        document.getElementById('newCol2').value,
-        imageUrl,
-      ];
-      data.push(newRow);
-      document.getElementById('newCol1').value = '';
-      document.getElementById('newCol2').value = '';
-      document.getElementById('imagePicker').value = ''; // Clear file input
-      updateLocalStorage();
-      renderTable();
     }
+
+    const newRow = [
+      document.getElementById('newCol1').value,
+      document.getElementById('newCol2').value,
+      imageUrl,
+    ];
+    data.push(newRow);
+    document.getElementById('newCol1').value = '';
+    document.getElementById('newCol2').value = '';
+    document.getElementById('imagePicker').value = ''; // Clear file input
+    updateLocalStorage();
+    renderTable();
   }
 
   function renderTable() {
@@ -117,7 +101,7 @@ img { max-width: 100px; max-height: 100px; } /* Limit image size */
             document.getElementById('imagePicker').onchange = () => {
               const file = document.getElementById('imagePicker').files[0];
               const reader = new FileReader();
-              reader.onload = (e) => { updateData(rowIndex, colIndex, e.target.result); };
+              reader.onload = (e) => {updateData(rowIndex, colIndex, e.target.result);};
               reader.readAsDataURL(file);
             };
           };
@@ -147,7 +131,11 @@ img { max-width: 100px; max-height: 100px; } /* Limit image size */
     document.getElementById('imagePicker').click();
   }
 
+
   renderTable();
+
+
+
 </script>
 
 </body>
