@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>My Own Score Record </title>
+<title>My Own Score Record</title>
 <style>
 body { font-size: 18px; }
 table { width: 90%; border-collapse: collapse; font-size: 16px; }
@@ -9,8 +9,8 @@ th, td { border: 1px solid black; padding: 12px; }
 th { text-align: left; }
 input[type="text"] { font-size: 16px; padding: 8px; width: 100%; box-sizing: border-box; }
 button { font-size: 16px; padding: 8px 12px; }
-input[type="file"] { display: none; } /* Hide file input by default */
-img { max-width: 100px; max-height: 100px; } /* Limit image size */
+input[type="file"] { display: none; }
+img { max-width: 100px; max-height: 100px; }
 </style>
 </head>
 <body>
@@ -36,10 +36,11 @@ img { max-width: 100px; max-height: 100px; } /* Limit image size */
 <button onclick="addRow()">Add Row</button>
 
 <script>
-  let data = JSON.parse(localStorage.getItem('tableData')) || [];
+  const storageKey = `tableData_${window.location.pathname}`;
+  let data = JSON.parse(localStorage.getItem(storageKey)) || [];
 
   function updateLocalStorage() {
-    localStorage.setItem('tableData', JSON.stringify(data));
+    localStorage.setItem(storageKey, JSON.stringify(data));
   }
 
   function updateData(rowIndex, colIndex, value) {
@@ -55,25 +56,32 @@ img { max-width: 100px; max-height: 100px; } /* Limit image size */
   }
 
   function addRow() {
-    const file = document.getElementById('imagePicker').files[0];
-    let imageUrl = '';
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => { imageUrl = e.target.result; };
-      reader.readAsDataURL(file);
-    }
-
+    const fileInput = document.getElementById('imagePicker');
+    const file = fileInput.files[0];
     const newRow = [
       document.getElementById('newCol1').value,
       document.getElementById('newCol2').value,
-      imageUrl,
+      ''
     ];
-    data.push(newRow);
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        newRow[2] = e.target.result;
+        data.push(newRow);
+        updateLocalStorage();
+        renderTable();
+      };
+      reader.readAsDataURL(file);
+    } else {
+      data.push(newRow);
+      updateLocalStorage();
+      renderTable();
+    }
+
     document.getElementById('newCol1').value = '';
     document.getElementById('newCol2').value = '';
-    document.getElementById('imagePicker').value = ''; // Clear file input
-    updateLocalStorage();
-    renderTable();
+    fileInput.value = ''; // Clear file input
   }
 
   function renderTable() {
@@ -81,28 +89,37 @@ img { max-width: 100px; max-height: 100px; } /* Limit image size */
     tbody.innerHTML = '';
 
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const filteredData = data.filter(row => {
-      return row.some(cell => cell && cell.toLowerCase().includes(searchTerm));
-    });
+    const filteredData = data.filter(row => 
+      row.some(cell => typeof cell === 'string' && cell.toLowerCase().includes(searchTerm))
+    );
 
     filteredData.forEach((row, rowIndex) => {
       const newRow = tbody.insertRow();
+      
       row.forEach((cell, colIndex) => {
         const cellElement = newRow.insertCell();
+        
         if (colIndex === 2) { // Image column
-          const img = document.createElement('img');
-          img.src = cell;
-          img.alt = 'Uploaded Image';
-          cellElement.appendChild(img);
+          if (cell) {
+            const img = document.createElement('img');
+            img.src = cell;
+            img.alt = 'Uploaded Image';
+            cellElement.appendChild(img);
+          }
+
           const chooseImageButton = document.createElement('button');
           chooseImageButton.textContent = 'Choose Image';
           chooseImageButton.onclick = () => {
             document.getElementById('imagePicker').click();
             document.getElementById('imagePicker').onchange = () => {
               const file = document.getElementById('imagePicker').files[0];
-              const reader = new FileReader();
-              reader.onload = (e) => {updateData(rowIndex, colIndex, e.target.result);};
-              reader.readAsDataURL(file);
+              if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                  updateData(rowIndex, colIndex, e.target.result);
+                };
+                reader.readAsDataURL(file);
+              }
             };
           };
           cellElement.appendChild(chooseImageButton);
@@ -131,11 +148,7 @@ img { max-width: 100px; max-height: 100px; } /* Limit image size */
     document.getElementById('imagePicker').click();
   }
 
-
   renderTable();
-
-
-
 </script>
 
 </body>
